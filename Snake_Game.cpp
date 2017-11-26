@@ -8,7 +8,7 @@
 using namespace std;
 
 #define height 25//height of board
-#define width 25//width of board
+#define width 50//width of board
 
 int dir = 1;//to track direction in which snake is moving
 
@@ -20,6 +20,10 @@ struct snake {
 struct fruit {
 	int x,y;
 } f;
+
+bool is_valid (int i,int j) {
+	return (i >= 0 && i<=height && j >= 0 && j<=width);
+}
 
 void draw () {
 	system("cls");
@@ -37,7 +41,7 @@ void draw () {
 						if (k == s.visit.size()-1)
 							cout<<"^";
 						else 
-							cout<<"#";
+							cout<<"0";
 						f = 1;
 						break;
 					}
@@ -48,7 +52,7 @@ void draw () {
 		}
 		cout<<"$\n";
 	}
-	for (int i=0;i<width+2;i++) cout<<'$';
+	for (int i=0;i<=width+2;i++) cout<<'$';
 	cout<<"\n";
 }
 
@@ -74,48 +78,76 @@ void logic () {
 			s.visit.push_back({s.x-1,s.y});
 			s.x--;
 		}
+		if (n == 1) {
+			s.visit.push_back({s.x,s.y+1});
+			s.y++;
+		}
 		f.x = rand() % height;
 		f.y = rand() % width;
 	}
 }
 
 bool input () {
-	if (dir != -1) {
+	if (_kbhit()) {
+		char c = _getch();
+		int k = dir;
+		dir = -1;
+		switch (c) {
+			case 'w':
+				if (k == 3) {
+					s.x++;
+					dir = k;
+				}
+				else {
+					s.x--;
+					dir = 0;
+				}
+				break;
+			case 'd':
+				if (k == 2) {
+					dir = k;
+					s.y--;
+				}
+				else {
+					s.y++;
+					dir = 1;
+				}
+				break;
+			case 'a':
+				if (k == 1) {
+					dir = k;
+					s.y++;
+				}
+				else {
+					s.y--;
+					dir = 2;
+				}
+				break;
+			case 's':
+				if (k == 0) {
+					s.x--;
+					dir = k;
+				}
+				else {
+					s.x++;
+					dir = 3;
+				}
+				break;
+		}
+	}
+	else if (dir != -1) {
 		if (dir == 0) s.x--;
 		else if (dir == 1) s.y++;
 		else if (dir == 2) s.y--;
 		else if (dir == 3) s.x++;
 	}
-	if (_kbhit()) {
-		dir = -1;
-		switch (_getch()) {
-			case 'w':
-				s.x--;
-				dir = 0;
-				break;
-			case 'd':
-				s.y++;
-				dir = 1;
-				break;
-			case 'a':
-				s.y--;
-				dir = 2;
-				break;
-			case 's':
-				s.x++;
-				dir = 3;
-				break;
-		}
-	}
 	s.visit.push_back({s.x,s.y});
 	s.visit.erase(s.visit.begin());
-	for (int i=0;i<s.visit.size();i++) {//if snake touch itself
-		for (int j=i+1;j<s.visit.size();j++) {
-			if ((s.visit[i].first == s.visit[j].first
-			&& s.visit[i].second == s.visit[j].second)) {
-				return 1;
-			}
-		}
+	if (is_valid(s.x,s.y) == 0)
+		return 1;
+	for (int i=0;i<s.visit.size()-1;i++) {//if snake touch itself
+		if ((s.visit[i].first == s.x && s.visit[i].second == s.y))
+			return 1;
 	}
 	return 0;
 }
@@ -123,18 +155,18 @@ bool input () {
 int main () {
 	f.y = rand() % width;
 	f.x = rand() % height;
-	s.x = 0;s.y = 1;s.size = 2;
+	s.x = 0;s.y = 0;s.size = 1;
 	s.visit.push_back({0,0});
-	s.visit.push_back({0,1});
+	//s.visit.push_back({0,1});
 	while (1) {
 		draw();
 		if (input()) {
-			cout<<"Game over : Score = "<<s.size-2<<"\n";
+			cout<<"Game over : Score = "<<s.size<<"\n";
 			system("pause");
 			return 0;
 		}
 		logic();
-		cout<<"Score = "<<s.size - 2<<"\n";
-		Sleep(100);
+		cout<<"Score = "<<s.size<<"\n";
+		Sleep(75);
 	}
 }
